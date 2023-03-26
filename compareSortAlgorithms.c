@@ -1,79 +1,81 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 int extraMemoryAllocated;
 
-// implement merge sort
+// Implement merge sort
 // extraMemoryAllocated counts bytes of extra memory allocated
-void mergeSort(int arr[], int l, int r) {
-    if (l >= r) 
-	return;
+void mergeSort(int pData[], int l, int r)
+{
+    if (l >= r)
+        return;
 
-    int mid = l + (r- l) / 2;
-    mergeSort(arr, l, mid);
-    mergeSort(arr, mid + 1, r);
+    int mid = l + (r - l) / 2;
+    mergeSort(pData, l, mid);
+    mergeSort(pData, mid + 1, r);
 
-    int temp[r - l + 1];
-    int i = l, j = mid + 1, k = 0;
+    int left[mid - l + 1];
+    int right[r - mid];
 
-    while (i <= mid && j <= r) 
-    {
-        if (arr[i] <= arr[j]) 
-	{
-            temp[k++] = arr[i++];
+    memcpy(left, &pData[l], sizeof(int) * (mid - l + 1));
+    memcpy(right, &pData[mid + 1], sizeof(int) * (r - mid));
+
+    int i = 0, j = 0, k = l;
+    while (i < mid - l + 1 && j < r - mid) {
+        if (left[i] <= right[j]) {
+            pData[k] = left[i];
+            ++i;
         }
-	    
-	else 
-	{
-            temp[k++] = arr[j++];
+        else {
+            pData[k] = right[j];
+            ++j;
         }
+        ++k;
     }
 
-    while (i <= mid) 
-    {
-        temp[k++] = arr[i++];
+    while (i < mid - l + 1) {
+        pData[k] = left[i];
+        ++i;
+        ++k;
     }
 
-    while (j <= r) 
-    {
-        temp[k++] = arr[j++];
+    while (j < r - mid) {
+        pData[k] = right[j];
+        ++j;
+        ++k;
     }
 
-    for (int i = 0; i < k; i++) 
-    {
-        arr[l + i] = temp[i];
-    }
+    extraMemoryAllocated += sizeof(left) + sizeof(right);
 }
 
-// implement insertion sort
+// Implement insertion sort
 // extraMemoryAllocated counts bytes of memory allocated
-void insertionSort(int* arr, int n)
+void insertionSort(int* pData, int n)
 {
     int i, key, j;
     for (i = 1; i < n; i++)
     {
-        key = arr[i];
+        key = pData[i];
         j = i - 1;
 
-        while (j >= 0 && arr[j] > key)
+        while (j >= 0 && pData[j] > key)
         {
-            arr[j + 1] = arr[j];
+            pData[j + 1] = pData[j];
             j = j - 1;
         }
-
-        arr[j + 1] = key;
+        pData[j + 1] = key;
     }
-    extraMemoryAllocated = 0;
+
+    extraMemoryAllocated += 0;
 }
 
-// implement bubble sort
+// Implement bubble sort
 // extraMemoryAllocated counts bytes of extra memory allocated
 void bubbleSort(int* pData, int n)
 {
     int i, j, temp;
-    int size = n * sizeof(int); 
-
     for (i = 0; i < n - 1; i++)
     {
         for (j = 0; j < n - i - 1; j++)
@@ -87,16 +89,14 @@ void bubbleSort(int* pData, int n)
         }
     }
 
-    extraMemoryAllocated = size - (n * sizeof(int));
+    extraMemoryAllocated += 0;
 }
 
-// implement selection sort
+// Implement selection sort
 // extraMemoryAllocated counts bytes of extra memory allocated
 void selectionSort(int* pData, int n)
 {
     int i, j, min_idx, temp;
-    int size = n * sizeof(int); 
-
     for (i = 0; i < n - 1; i++)
     {
         min_idx = i;
@@ -107,13 +107,12 @@ void selectionSort(int* pData, int n)
                 min_idx = j;
             }
         }
-	    
         temp = pData[i];
         pData[i] = pData[min_idx];
         pData[min_idx] = temp;
     }
 
-    extraMemoryAllocated = size - (n * sizeof(int));
+    extraMemoryAllocated += 0;
 }
 
 // parses input file to an integer array
@@ -127,8 +126,7 @@ int parseData(char *inputFileName, int **ppData)
     {
         fscanf(inFile,"%d\n",&dataSz);
         *ppData = (int *)malloc(sizeof(int) * dataSz);
-        for (int i = 0; i < dataSz; i++) 
-	{
+        for (int i = 0; i < dataSz; i++) {
             fscanf(inFile, "%d", &(*ppData)[i]);
         }
     }
@@ -147,7 +145,7 @@ void printArray(int pData[], int dataSz)
 		printf("%d ",pData[i]);
 	}
 	printf("\n\t");
-	
+
 	for (i=sz;i<dataSz;++i)
 	{
 		printf("%d ",pData[i]);
@@ -161,21 +159,21 @@ int main(void)
 	int i;
     double cpu_time_used;
 	char* fileNames[] = {"input1.txt", "input2.txt", "input3.txt"};
-	
+
 	for (i=0;i<3;++i)
 	{
 		int *pDataSrc, *pDataCopy;
 		int dataSz = parseData(fileNames[i], &pDataSrc);
-		
+
 		if (dataSz <= 0)
 			continue;
-		
+
 		pDataCopy = (int *)malloc(sizeof(int)*dataSz);
-	
+
 		printf("---------------------------\n");
 		printf("Dataset Size : %d\n",dataSz);
 		printf("---------------------------\n");
-		
+
 		printf("Selection Sort:\n");
 		memcpy(pDataCopy, pDataSrc, dataSz*sizeof(int));
 		extraMemoryAllocated = 0;
@@ -186,7 +184,7 @@ int main(void)
 		printf("\truntime\t\t\t: %.1lf\n",cpu_time_used);
 		printf("\textra memory allocated\t: %d\n",extraMemoryAllocated);
 		printArray(pDataCopy, dataSz);
-		
+
 		printf("Insertion Sort:\n");
 		memcpy(pDataCopy, pDataSrc, dataSz*sizeof(int));
 		extraMemoryAllocated = 0;
@@ -208,7 +206,7 @@ int main(void)
 		printf("\truntime\t\t\t: %.1lf\n",cpu_time_used);
 		printf("\textra memory allocated\t: %d\n",extraMemoryAllocated);
 		printArray(pDataCopy, dataSz);
-		
+
 		printf("Merge Sort:\n");
 		memcpy(pDataCopy, pDataSrc, dataSz*sizeof(int));
 		extraMemoryAllocated = 0;
@@ -219,9 +217,9 @@ int main(void)
 		printf("\truntime\t\t\t: %.1lf\n",cpu_time_used);
 		printf("\textra memory allocated\t: %d\n",extraMemoryAllocated);
 		printArray(pDataCopy, dataSz);
-		
+
 		free(pDataCopy);
 		free(pDataSrc);
 	}
-	
+
 }
